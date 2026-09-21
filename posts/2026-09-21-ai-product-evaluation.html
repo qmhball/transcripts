@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 产品评估：从失败模式到可信评估体系</title>
+<style>
+  :root { --ink:#1d1d1f; --muted:#666; --line:#e3e3e6; --accent:#0b6b5f; --bad:#b3261e; --good:#1a7f37; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:0; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif; color:var(--ink); line-height:1.75; background:#fafafa; }
+  .wrap { max-width:860px; margin:0 auto; padding:48px 24px 80px; }
+  header { border-bottom:2px solid var(--ink); padding-bottom:20px; margin-bottom:36px; }
+  h1 { font-size:1.9rem; margin:0 0 8px; letter-spacing:-.01em; line-height:1.35; }
+  .meta { color:var(--muted); font-size:.9rem; }
+  h2 { font-size:1.3rem; margin:44px 0 12px; padding-top:14px; border-top:1px solid var(--line); }
+  h3 { font-size:1.05rem; margin:24px 0 8px; }
+  p, li { font-size:1rem; }
+  ul { padding-left:1.3em; }
+  .lead { background:#fff; border:1px solid var(--line); border-radius:10px; padding:18px 22px; }
+  table { width:100%; border-collapse:collapse; margin:14px 0; background:#fff; font-size:.95rem; }
+  th, td { border:1px solid var(--line); padding:10px 12px; text-align:left; vertical-align:top; }
+  th { background:#f2f4f4; font-weight:600; }
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  @media (max-width:640px) { .cols { grid-template-columns:1fr; } }
+  .card { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; }
+  .card.bad { border-left:4px solid var(--bad); }
+  .card.good { border-left:4px solid var(--good); }
+  .card h3 { margin:.2em 0 .5em; font-size:1rem; }
+  .note { background:#fff8e6; border:1px solid #f0dda0; border-radius:8px; padding:12px 16px; font-size:.95rem; }
+  .tier { background:#fff; border:1px solid var(--line); border-radius:10px; padding:14px 18px; margin:12px 0; }
+  .tier span { display:inline-block; background:var(--accent); color:#fff; border-radius:4px; padding:1px 8px; font-size:.8rem; margin-right:8px; }
+  figure { margin:28px 0; }
+  figure svg { display:block; width:100%; height:auto; }
+  figcaption { color:var(--muted); font-size:.85rem; margin-top:8px; }
+  code { background:#eef1f1; padding:1px 5px; border-radius:4px; font-size:.9em; }
+  a { color:#075e54; }
+  footer { margin-top:48px; padding-top:16px; border-top:1px solid var(--line); color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>AI 产品评估：从失败模式到可信评估体系</h1>
+  <p class="meta">Vivi Podcast · Vivivivi · 2026-07-11 · 原题《AI产品评估：告别虚荣指标，三步打造可信赖体系》</p>
+</header>
+
+<p class="lead">幻觉率、毒性得分等通用指标可以很好看，用户却仍可能在关键任务上被产品坑到。这期播客给出的做法是：先由领域专家从真实交互中归纳产品自己的失败模式，再把标准转成可重复运行的评估器，最后拆开检查 RAG 和 Agent 工作流中的每个环节。</p>
+
+<h2>好看的指标不等于好用的产品</h2>
+<p>播客用租房助手举例：系统可能通过安全和毒性测试，却给急着找房的用户生成一个根本不存在的看房链接。对用户来说，这一次错误足以抵消产品此前积累的好感。</p>
+<p>问题不在指标本身，而在指标和产品目标没有对齐。通用指标测量的是模型的一般属性，产品团队真正需要知道的是：系统会在什么场景失败，失败是否会伤到用户最在意的任务。没有这把专属的尺子，换一个更强的模型，也无法证明产品真的有所改善。</p>
+
+<div class="cols">
+  <div class="card bad">
+    <h3>容易误导团队的做法</h3>
+    <ul>
+      <li>直接采用现成的通用指标。</li>
+      <li>只看总体准确率或平均分。</li>
+      <li>把模型升级等同于产品进步。</li>
+    </ul>
+  </div>
+  <div class="card good">
+    <h3>更接近用户问题的做法</h3>
+    <ul>
+      <li>从真实用户交互中找失败模式。</li>
+      <li>让领域专家先建立统一标准。</li>
+      <li>让指标能定位具体故障环节。</li>
+    </ul>
+  </div>
+</div>
+
+<h2>第一阶段：让专家定义失败</h2>
+<p>产品早期可以指定一位首席领域专家，作为质量标准的主要仲裁者。心理健康产品由心理学家把关，合同分析工具交给律师判断。专家先审查大约 100 个有代表性的用户交互，不急着打分，而是逐条写下批评：答案是否生硬、是否丢失上下文、是否误解了用户意图。</p>
+<p>这些自由评论属于开放式编码。积累到一定数量后，再做轴向编码，把相近问题归到一起。例如，回复慢、上下文丢失和对话尴尬，可以进一步归入“对话流断裂”。最终目标是把上百种零散错误收敛成少于 10 个核心失败模式。</p>
+<div class="note"><p>单一专家必然带有偏见。播客的判断是，在产品从零到一时，一套一致的标准比多人争论形成的混乱共识更便于行动。等产品扩大、需要多位专家时，再用标注者间一致性校准。</p></div>
+
+<figure>
+  <svg viewBox="0 0 800 360" role="img" aria-labelledby="eval-flow-title eval-flow-desc">
+    <title id="eval-flow-title">AI 产品评估体系的三个阶段</title>
+    <desc id="eval-flow-desc">从专家审查真实交互，归纳失败模式，再构建二进制评估器并验证，最后拆解复杂系统的各个环节形成持续改进。</desc>
+    <defs>
+      <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#777"/>
+      </marker>
+      <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#0b6b5f"/>
+      </marker>
+    </defs>
+    <rect width="800" height="360" rx="12" fill="#fafafa"/>
+    <text x="32" y="38" fill="#1d1d1f" font-size="20" font-weight="600">从人的判断出发，逐步变成可运行、可诊断的系统</text>
+
+    <rect x="32" y="72" width="218" height="220" rx="12" fill="#fff" stroke="#1d1d1f" stroke-width="1.2"/>
+    <text x="52" y="102" fill="#666" font-size="12">第一阶段</text>
+    <text x="52" y="130" fill="#1d1d1f" font-size="17" font-weight="600">专家定义失败</text>
+    <rect x="52" y="151" width="178" height="42" rx="7" fill="#f2f4f4"/>
+    <text x="141" y="177" text-anchor="middle" fill="#1d1d1f" font-size="13">审查约 100 个交互</text>
+    <line x1="141" y1="194" x2="141" y2="213" stroke="#777" marker-end="url(#arrow)"/>
+    <rect x="52" y="217" width="178" height="54" rx="7" fill="#f2f4f4"/>
+    <text x="141" y="239" text-anchor="middle" fill="#1d1d1f" font-size="13">开放式编码 → 轴向编码</text>
+    <text x="141" y="258" text-anchor="middle" fill="#666" font-size="12">收敛为少于 10 个失败模式</text>
+
+    <line x1="250" y1="182" x2="282" y2="182" stroke="#777" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="291" y="72" width="218" height="220" rx="12" fill="#e8f3f1" stroke="#0b6b5f" stroke-width="2"/>
+    <text x="311" y="102" fill="#0b6b5f" font-size="12">第二阶段</text>
+    <text x="311" y="130" fill="#1d1d1f" font-size="17" font-weight="600">构建并验证评估器</text>
+    <rect x="311" y="151" width="178" height="42" rx="7" fill="#fff" stroke="#c8ded9"/>
+    <text x="400" y="177" text-anchor="middle" fill="#1d1d1f" font-size="13">通过 / 失败 + 判断理由</text>
+    <line x1="400" y1="194" x2="400" y2="213" stroke="#0b6b5f" marker-end="url(#arrow-accent)"/>
+    <rect x="311" y="217" width="178" height="54" rx="7" fill="#fff" stroke="#c8ded9"/>
+    <text x="400" y="239" text-anchor="middle" fill="#1d1d1f" font-size="13">训练集 · 开发集 · 测试集</text>
+    <text x="400" y="258" text-anchor="middle" fill="#0b6b5f" font-size="12">用 TNR 检查漏判失败</text>
+
+    <line x1="509" y1="182" x2="541" y2="182" stroke="#777" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+    <rect x="550" y="72" width="218" height="220" rx="12" fill="#fff" stroke="#1d1d1f" stroke-width="1.2"/>
+    <text x="570" y="102" fill="#666" font-size="12">第三阶段</text>
+    <text x="570" y="130" fill="#1d1d1f" font-size="17" font-weight="600">拆解复杂系统</text>
+    <rect x="570" y="151" width="178" height="42" rx="7" fill="#f2f4f4"/>
+    <text x="659" y="177" text-anchor="middle" fill="#1d1d1f" font-size="13">RAG：检索器 / 生成器</text>
+    <line x1="659" y1="194" x2="659" y2="213" stroke="#777" marker-end="url(#arrow)"/>
+    <rect x="570" y="217" width="178" height="54" rx="7" fill="#f2f4f4"/>
+    <text x="659" y="239" text-anchor="middle" fill="#1d1d1f" font-size="13">Agent：逐环节定位故障</text>
+    <text x="659" y="258" text-anchor="middle" fill="#666" font-size="12">把总分变成诊断信息</text>
+
+    <path d="M659 294 C659 332, 141 332, 141 297" fill="none" stroke="#0b6b5f" stroke-width="1.5" stroke-dasharray="5 4" marker-end="url(#arrow-accent)"/>
+    <text x="400" y="348" text-anchor="middle" fill="#0b6b5f" font-size="12">失败样本回流，更新标准</text>
+  </svg>
+  <figcaption>评估体系不是一张固定评分表。失败样本会重新进入专家审查，标准也随产品迭代。</figcaption>
+</figure>
+
+<h2>第二阶段：把专家判断交给评估器</h2>
+<p>人工标准建立后，下一步是让评估器持续运行。播客建议 LLM-as-a-judge 不使用一到五分的模糊量表，而是明确判断“通过”或“失败”，同时写出理由。二进制判断减少了三分与四分之间难以统一的解释空间，细节仍可保留在批评文字中。</p>
+<p>评估器也需要被评估。人工标注的 ground truth 应拆成训练集、开发集和测试集；衡量时不能只看总体准确率，还要关注真阴性率 TNR，也就是评估器从真实失败案例中揪出多少个。</p>
+<p>播客给了一个极端但直观的例子：假设产品成功率已经达到 99%，一个永远判断“通过”的评估器，总体准确率同样能达到 99%，却发现不了剩下 1% 的失败。这样的评估器对产品改进没有价值。检查评估器本身是否可靠，这一步称为元评估。</p>
+
+<h2>第三阶段：复杂系统需要诊断，不只需要总分</h2>
+<p>当产品进入 RAG 或 Agent 场景，单个通过率只能说明系统出了问题，无法告诉团队问题在哪里。评估要沿工作流程拆开。</p>
+<table>
+  <tr><th>系统部分</th><th>要回答的问题</th><th>播客提到的指标或工具</th></tr>
+  <tr><td>RAG 检索器</td><td>真正相关的信息是否被找回来</td><td>召回率</td></tr>
+  <tr><td>RAG 生成器</td><td>答案是否严格依据给定资料</td><td>忠实度</td></tr>
+  <tr><td>Agent 工作流</td><td>SQL 生成、数据库查询、API 调用或结果理解，具体在哪一步失败</td><td>转换失败矩阵</td></tr>
+</table>
+<p>这套拆解方式把黑盒式调试改成针对具体环节的调查。模型内部仍可能难以解释，但团队至少可以监控系统运行路径上的关键节点。</p>
+
+<h2>落地时应保留的四个判断</h2>
+<div class="tier"><span>起点</span>从领域专家审查真实交互开始，先写批评，再归纳失败模式。</div>
+<div class="tier"><span>信号</span>优先获得清晰、一致的判断；通过或失败的二进制结果比模糊分数更便于行动。</div>
+<div class="tier"><span>诊断</span>复杂系统按模块评估，指标需要指向故障发生的位置。</div>
+<div class="tier"><span>信任</span>持续检查评估器是否漏掉失败案例，不让漂亮的总体准确率掩盖问题。</div>
+
+<p>播客最后留下的问题很实用：当仪表盘上的指标再次上涨，先确认产品真的变好了，还是评估系统更擅长给出团队想看的答案。</p>
+
+<footer>
+  本页根据小宇宙节目 《AI产品评估：告别虚荣指标，三步打造可信赖体系》 的完整音频转录整理。音频约 11 分钟，转录结尾完整，未发现中断。术语依据节目页面说明统一为 Lenny's Newsletter、LLM-as-a-judge、ground truth、TNR 和“元评估”。
+</footer>
+</div>
+</body>
+</html>
